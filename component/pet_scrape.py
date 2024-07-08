@@ -57,25 +57,31 @@ class DownloaderApp:
             if data["error"] == 0:
                 pet_list = data["data"].get("list", [])
                 if pet_list:
-                    total_videos = sum(len(pet.get("videos", [])) for pet in pet_list)
-                    self.progress["maximum"] = total_videos
+                    total_files = sum(len(pet.get("videos", [])) + len(pet.get("photos", [])) for pet in pet_list)
+                    self.progress["maximum"] = total_files
                     for pet in pet_list:
                         name = pet.get("name", "unknown")
                         pet_id = pet.get("id", "unknown")
                         videos = pet.get("videos", [])
-                        if videos:
-                            save_path = os.path.join("video", name, str(pet_id))
-                            if not os.path.exists(save_path):
-                                os.makedirs(save_path)
-                            for video in videos:
-                                video_extension = video.split(".")[-1]
-                                video_name = f"{name}_{pet_id}.{video_extension}"
-                                video_path = os.path.join(save_path, video_name)
-                                await self.download_video(video, video_path)
-                                self.progress["value"] += 1
-                                self.root.update_idletasks()
-                        else:
-                            print(f"No videos found for {name} with ID {pet_id}")
+                        photos = pet.get("photos", [])
+                        save_path = os.path.join("video", name, str(pet_id))
+                        if not os.path.exists(save_path):
+                            os.makedirs(save_path)
+                        for video in videos:
+                            video_extension = video.split(".")[-1]
+                            video_name = f"{name}_{pet_id}.{video_extension}"
+                            video_path = os.path.join(save_path, video_name)
+                            await self.download_file(video, video_path)
+                            self.progress["value"] += 1
+                            self.root.update_idletasks()
+                        for photo in photos:
+                            photo = photo.split("!b")[0]  # Remove the '!b' suffix
+                            photo_extension = photo.split(".")[-1]
+                            photo_name = f"{name}_{pet_id}_photo.{photo_extension}"
+                            photo_path = os.path.join(save_path, photo_name)
+                            await self.download_file(photo, photo_path)
+                            self.progress["value"] += 1
+                            self.root.update_idletasks()
                 else:
                     print("No pets found in the list.")
             else:
@@ -85,7 +91,7 @@ class DownloaderApp:
         self.download_button.config(state=tk.NORMAL)
         self.pause_button.config(state=tk.DISABLED)
 
-    async def download_video(self, url, path):
+    async def download_file(self, url, path):
         response = requests.get(url, stream=True, headers=self.headers)
         if response.status_code == 200:
             with open(path, 'wb') as file:
@@ -94,7 +100,7 @@ class DownloaderApp:
                         file.write(chunk)
             print(f"Downloaded: {path}")
         else:
-            print(f"Failed to download video from {url}. Status code: {response.status_code}")
+            print(f"Failed to download file from {url}. Status code: {response.status_code}")
 
 if __name__ == "__main__":
     root = tk.Tk()
