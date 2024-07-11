@@ -1,15 +1,9 @@
-AZURE_OPENAI_API_KEY = 'c739981ee79541deb8414f0bd8bb576c'
-AZURE_DEPLOYMENT_MODEL = 'tcl-gpt4o1'
-OPENAI_API_VERSION = '2024-04-01-preview'
-AZURE_BASE_URL = 'https://tcl-azure-westus3.openai.azure.com'
-
 from langchain_openai import AzureChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.chains.conversation.base import ConversationChain
 import pandas as pd
 
-# 初始化全局变量
 conversation = None
 
 propose_prompt = """
@@ -105,7 +99,7 @@ content_prompt = """
 此分类无需预期意图
 """
 
-prompts = [propose_prompt,entity_prompt,content_prompt]
+prompts = [propose_prompt,entity_prompt]
 
 def initialize_conversation():
     global conversation
@@ -155,8 +149,7 @@ def AzureChat_reponse(query:str):
     return result
 
 import os
-# 将结果存入Excel表格
-# 将结果存入Excel表格
+
 def save_to_excel(data, filename):
     df = pd.DataFrame(data.split('\n'), columns=['A'])
     if not os.path.isfile(filename):
@@ -166,8 +159,7 @@ def save_to_excel(data, filename):
         with pd.ExcelWriter(filename, mode='a', if_sheet_exists='overlay', engine='openpyxl') as writer:
             df.to_excel(writer, index=False, header=False, startrow=writer.sheets['Sheet1'].max_row)
 
-# 循环问答
-for i in range(150):  # 循环150次，每50次换一个prompt
+for i in range(400):  
     prompt = prompts[i // 50]
     result = AzureChat_reponse(prompt)
     save_to_excel(result, 'result.xlsx')
