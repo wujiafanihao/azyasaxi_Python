@@ -1,0 +1,10 @@
+{
+    "file_path": "终端测试集_all_0722.xlsx",
+    "min_samples": 10,         
+    "max_samples": 30,          
+    "delimiter_samples": 40,
+    "sheet_processing": {
+        "groupby_range": [1, 3],
+        "delimiter_range": [4, 6]
+    }
+}
